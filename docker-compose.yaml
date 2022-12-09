@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  tts:
+    build: ./tts
+    container_name: tts
+    environment:
+      - TEXT_FILE=${TEXT_FILE?Variable not set}
+      - MODEL=${MODEL?Variable not set}
+    volumes:
+      - type: volume
+        source: checkpoints
+        target: /checkpoints
+      - type: bind
+        source: .
+        target: /local
+volumes:
+  checkpoints:
+    external: true
