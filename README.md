@@ -2,6 +2,8 @@
 Italian pre-trained TTS models for VITS, FastPitch and Hifi-GAN.
 
 ## Intro
+This work was done during my [master thesis](https://webthesis.biblio.polito.it/25614/).
+
 This is a demo of the Italian TTS models.
 You write the text you want to synthesize
 in a txt file, while the speech is automatically saved in `output.mp3`.
