@@ -5,10 +5,8 @@ Italian pre-trained TTS models for VITS, FastPitch and Hifi-GAN.
 This work was done during my [master thesis](https://webthesis.biblio.polito.it/25614/).
 
 This is a demo of the Italian TTS models.
-You write the text you want to synthesize
-in a txt file, while the speech is automatically saved in `output.mp3`.
-If you are just interested in the pre-trained checkpoints, you can download them
-[here](https://drive.google.com/drive/folders/1GYx7vhNi07DClXrzLDgau_LV-aHD2-yz). Otherwise, below there are the instructions to run the demo.
+You write the text you want to synthesize in a txt file, while the speech is automatically saved in `output.mp3`.
+The pre-trained checkpoints are available in the `checkpoints` folder.
 
 ## Settings
 The settings must be written in a `.env` file that will be automatically read by docker
