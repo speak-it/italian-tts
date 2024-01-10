@@ -49,6 +49,7 @@ docker compose up --build
 ## Note
 * The tts service finishes loading when it logs `TTS model loaded. Ready to consume.`.
 * Take a look at http://localhost:5050/docs.
+* [Here](https://drive.google.com/drive/folders/1GYx7vhNi07DClXrzLDgau_LV-aHD2-yz) you can find the pre-trained checkpoints.
 
 ## References
 * https://github.com/NVIDIA/NeMo
