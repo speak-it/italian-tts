@@ -11,7 +11,7 @@ class Synthesizer:
     def __init__(self, model: Model):
         self.__model = model
 
-    def text_to_speech(self, text):
+    def text_to_speech(self, text: str) -> np.ndarray:
         audios = []
         sentences = re.findall(r'.*?[.!:();\?]|.+?$', text)
         max_n_words = 25

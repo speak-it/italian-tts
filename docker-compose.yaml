@@ -1,19 +1,49 @@
 version: '3.8'
 
 services:
+  fastapi:
+    build: ./fastapi
+    container_name: fastapi
+    # restart: unless-stopped
+    ports:
+      - "${PORT?Variable not set}:${PORT?Variable not set}"
+    volumes:
+      - audio_files:/files
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=${PORT?Variable not set}
+      - WEB_CONCURRENCY=${WEB_CONCURRENCY?Variable not set}
+    depends_on:
+      - tts
+      - rabbitmq
   tts:
     build: ./tts
     container_name: tts
+    # restart: unless-stopped
     environment:
-      - TEXT_FILE=${TEXT_FILE?Variable not set}
+      - PYTHONUNBUFFERED=1
+      - PROCESSES=${TTS_PROCESSES?Variable not set}
+      - TORCH-THREADS=${TORCH_THREADS?Variable not set}
       - MODEL=${MODEL?Variable not set}
+    deploy:
+      resources:
+        limits:
+          cpus: ${TTS_MAX_CPUS?Variable not set} # max number of cores for this service
     volumes:
-      - type: volume
-        source: checkpoints
-        target: /checkpoints
-      - type: bind
-        source: .
-        target: /local
+      - checkpoints:/checkpoints
+      - audio_files:/files
+    depends_on:
+      - rabbitmq
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3
+    # restart: unless-stopped
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
 volumes:
   checkpoints:
     external: true
+  audio_files:
