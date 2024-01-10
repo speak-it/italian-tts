@@ -1,0 +1,5 @@
+fastapi==0.85.1
+beanie==1.13.1
+pika
+pytz
+pydantic==1.*

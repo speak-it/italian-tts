@@ -3,7 +3,7 @@
 A platform that creates podcasts of news articles using Text-to-Speech.
 
 ## Settings
-The settings for the API must be written in a `.env` file that will be automatically read by docker
+The settings for the API must be written in a `.env` file that will be automatically read by Docker
 when running `docker compose up`.
 
 Example of `.env`:
@@ -25,8 +25,25 @@ TTS_MAX_CPUS=2  # max number of cores for this service
 ```
 git clone git@github.com:simsax/italian-tts.git
 cd italian-tts
-sudo chmod +x init.sh
-./init.sh
+
+# create .env file as specified above
+
+# required for downloading gdrive files
+pip install gdown
+
+# download checkpoints
+gdown --folder https://drive.google.com/drive/folders/1GYx7vhNi07DClXrzLDgau_LV-aHD2-yz
+
+# copy checkpoints into docker volume
+cd checkpoints
+docker volume create checkpoints
+docker container create --name temp -v checkpoints:/data busybox
+docker cp . temp:/data
+docker rm temp
+cd ..
+
+# run containers
+docker compose up --build
 ```
 
 ## Note
