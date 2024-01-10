@@ -1,5 +1,6 @@
-# tts-service
-A service that creates a podcast of the articles using text-to-speech.
+# speak-it
+
+A platform that creates podcasts of news articles using Text-to-Speech.
 
 ## Settings
 The settings for the API must be written in a `.env` file that will be automatically read by docker
@@ -22,8 +23,8 @@ TTS_MAX_CPUS=2  # max number of cores for this service
 ## How to run
 
 ```
-git clone https://github.com/column-app/tts-service.git
-cd tts-service
+git clone git@github.com:simsax/italian-tts.git
+cd italian-tts
 sudo chmod +x init.sh
 ./init.sh
 ```
