@@ -1,47 +1,56 @@
-# italian-tts
-Italian pre-trained TTS models for VITS, FastPitch and Hifi-GAN.
+# speak-it
 
-## Intro
-This work was done during my [master thesis](https://webthesis.biblio.polito.it/25614/).
-
-This is a demo of the Italian TTS models.
-You write the text you want to synthesize in a txt file, while the speech is automatically saved in `output.mp3`.
-The pre-trained checkpoints are available in the `checkpoints` folder.
+A platform that creates podcasts of news articles using Text-to-Speech.
 
 ## Settings
-The settings must be written in a `.env` file that will be automatically read by docker
+The settings for the API must be written in a `.env` file that will be automatically read by Docker
 when running `docker compose up`.
-You must set:
-* `TEXT_FILE`: path to the text file
-* `MODEL`: the TTS model to use for inference. Can be one of `vits`, `fp_male`, `fp_female`.
 
 Example of `.env`:
 
 ```
-TEXT_FILE=text.txt
-MODEL=fp_male
+# fastapi service
+PORT=5050
+WEB_CONCURRENCY=1 # number of uvicorn workers
+
+# tts service
+TTS_PROCESSES=1 # number of tts processes
+TORCH_THREADS=2 # number of PyTorch threads for each tts process
+MODEL=FastPitch # model to use (FastPitch/Vits)
+TTS_MAX_CPUS=2  # max number of cores for this service
 ```
 
 ## How to run
 
-if first_time:
-
 ```
-git clone https://github.com/simsax/italian-tts.git
+git clone git@github.com:simsax/italian-tts.git
 cd italian-tts
-# create .env and the text file
-sudo chmod +x init.sh
-./init.sh
+
+# create .env file as specified above
+
+# required for downloading gdrive files
+pip install gdown
+
+# download checkpoints
+gdown --folder https://drive.google.com/drive/folders/1GYx7vhNi07DClXrzLDgau_LV-aHD2-yz
+
+# copy checkpoints into docker volume
+cd checkpoints
+docker volume create checkpoints
+docker container create --name temp -v checkpoints:/data busybox
+docker cp . temp:/data
+docker rm temp
+cd ..
+
+# run containers
+docker compose up --build
 ```
 
-else:
-```
-# create .env and the text file
-docker compose up
-```
+## Note
+* The tts service finishes loading when it logs `TTS model loaded. Ready to consume.`.
+* Take a look at http://localhost:5050/docs.
+* [Here](https://drive.google.com/drive/folders/1GYx7vhNi07DClXrzLDgau_LV-aHD2-yz) you can find the pre-trained checkpoints.
 
 ## References
 * https://github.com/NVIDIA/NeMo
 * https://github.com/jaywalnut310/vits
-* https://www.caito.de/2019/01/03/the-m-ailabs-speech-dataset/
-* https://www.liberliber.it/online/autori/autori-d/charles-dickens/le-avventure-di-nicola-nickleby-audiolibro/

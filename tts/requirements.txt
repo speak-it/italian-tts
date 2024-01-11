@@ -1,0 +1,8 @@
+pika
+beanie==1.13.1
+nemo_toolkit[all]==1.13.0
+pynini==2.1.5
+phonemizer
+Unidecode
+pydantic==1.*
+trafilatura~=1.5.0

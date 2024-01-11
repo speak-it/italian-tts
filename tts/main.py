@@ -1,55 +1,59 @@
-import os
-from pydub import AudioSegment
-from synthesizer import Synthesizer
-from fastpitch.tts_model import FastpitchModel
-from vits.tts_model import VitsModel
+import pika
 from logger import get_logger
+from multiprocessing import Process
+from workers import FastPitchWorker, VitsWorker 
+import os
 
 log = get_logger(__name__)
 
 
-def save_as_mp3(audio_path, audio):
-    audio_segment = AudioSegment(
-        audio.tobytes(),
-        frame_rate=16000,
-        sample_width=audio.dtype.itemsize,
-        channels=1
-    )
-    audio_segment.export(audio_path, format="mp3", bitrate="160k")
+def create_worker():
+    """Creates a worker based on the model defined in the env variable: MODEL
 
+    Returns
+    -------
+    Worker
+        a concrete instance of a Worker
+    """
+    n_torch_threads = int(os.getenv("TORCH-THREADS", 1))
+    model_name = str(os.getenv("MODEL", "FastPitch"))
 
-def create_synthesizer():
-    model = os.getenv("MODEL")
-    BASE = "/checkpoints"
-    if model == "vits":
-        vits_model = VitsModel(f"{BASE}/vits/vits.pth")
-        return Synthesizer(vits_model)
-    elif model == "fp_male":
-        male1_model = FastpitchModel(
-            f"{BASE}/fastpitch/male1/FastPitch.ckpt", f"{BASE}/fastpitch/male1/HifiGan.ckpt",
-            "./male_conf.yaml")
-        return Synthesizer(male1_model)
-    elif model == "fp_female":
-        female1_model = FastpitchModel(
-            f"{BASE}/fastpitch/female1/FastPitch.ckpt", f"{BASE}/fastpitch/female1/HifiGan.ckpt",
-            "./female_conf.yaml")
-        return Synthesizer(female1_model)
+    if model_name == "FastPitch":
+        return FastPitchWorker(n_torch_threads)
+    elif model_name == "Vits":
+        return VitsWorker(n_torch_threads)
     else:
-        log.error("Model not found.")
+        log.fatal(f"No model found with name {model_name}.")
         exit(1)
+
+
+def run():
+    """Callable run by each process. Creates a consumer that receives podcast ids through the
+    tts_queue.
+    """
+    worker = create_worker()
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters("rabbitmq", heartbeat=0))
+    channel = connection.channel()
+    channel.queue_declare(queue="tts_queue", durable=True)
+
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue="tts_queue",
+                          on_message_callback=worker.run_inference)
+    log.debug("TTS model loaded. Ready to consume.")
+    channel.start_consuming()
 
 
 if __name__ == "__main__":
-    text_file = f"/local/{os.getenv('TEXT_FILE')}"
-    if not os.path.isfile(text_file):
-        log.error("Missing path to txt file.")
-        exit(1)
+    n_proc = int(os.getenv("PROCESSES", 1))
 
-    else:
-        with open(text_file, "r") as f:
-            text = f.read()
+    # launch inference processes
+    log.debug(f"SPAWNING {n_proc} PROCESSES.")
+    processes = []
+    for i in range(n_proc):
+        process = Process(target=run)
+        processes.append(process)
+        process.start()
 
-    synthesizer = create_synthesizer()
-    audio = synthesizer.text_to_speech(text)
-    save_as_mp3("/local/output.mp3", audio)
-    log.info("Audio file saved as output.mp3.")
+    for process in processes:
+        process.join()
